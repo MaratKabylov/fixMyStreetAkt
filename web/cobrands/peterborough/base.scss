@@ -1,0 +1,70 @@
+@import "../sass/h5bp";
+@import "./_colours";
+@import "../sass/mixins";
+@import "../sass/base";
+
+#site-logo {
+    width: 162px;
+    height: 56px;
+    padding: 0.5em 0;
+    @include svg-background-image('/cobrands/peterborough/images/logo');
+    background-position: 0 50%;
+    background-repeat: no-repeat;
+    background-size: 162px 56px;
+}
+
+#postcodeForm .form-hint {
+    color: $white;
+}
+
+#map_box #map {
+    background-color: white;
+}
+
+input {
+    font-family: $body-font;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-weight: 700;
+}
+
+.btn-primary,
+.green-btn,
+.btn--primary {
+    border: none;
+    background: $green;
+
+    &:hover,
+    &:active {
+        background: lighten($green, 5%);
+    }
+}
+
+.general-notes {
+    .box-warning {
+      font-size: 1.2em;
+    }
+}
+
+.nav-menu {
+    font-weight: 700;
+}
+
+a,
+.fake-link   {
+  color: $link-color;
+
+  &:visited {
+    color: $link-visited-color;
+  }
+
+  &:hover,
+  &:active {
+    color: $link-hover-color;
+  }
+}
+
+.dz-clickable .dz-message u {
+    color: $link-color;
+}
