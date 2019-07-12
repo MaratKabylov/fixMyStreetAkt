@@ -20,6 +20,10 @@ var defaults = {
         'isleofwight': 0.5291677250021167,
         'fixmystreet': 1.194328566789627
     },
+    attributes: {
+        central_asset_id: 'central_asset_id',
+        site_code: 'site_code'
+    },
     min_resolution: 0.00001,
     asset_id_field: 'asset_id',
     geometryName: 'msGeometry',
@@ -139,10 +143,6 @@ fixmystreet.assets.add($.extend(true, {}, defaults, {
         'isleofwight': 6.614596562526458,
         'fixmystreet': 4.777314267158508
     },
-    usrn: {
-        attribute: 'SITE_CODE',
-        field: 'site_code'
-    },
     stylemap: new OpenLayers.StyleMap({
         'default': new OpenLayers.Style({
             stroke: false,
@@ -166,7 +166,7 @@ fixmystreet.assets.add($.extend(true, {}, defaults, {
     always_visible: true,
     non_interactive: true,
     usrn: {
-        attribute: 'SITE_CODE',
+        attribute: 'site_code',
         field: 'site_code'
     },
     stylemap: new OpenLayers.StyleMap({
