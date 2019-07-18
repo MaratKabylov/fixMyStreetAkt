@@ -32,6 +32,14 @@ body.authpage #front-main {
         font-weight: normal;
         font-size: 1.5em;
     }
+    a#geolocate_link {
+        color: $link-color;
+        &:hover,
+        &:active,
+        &:focus {
+            color: $link-hover-color;
+        }
+    }
 }
 
 #postcodeForm .form-hint {
@@ -62,6 +70,23 @@ body.mappage #site-header {
         color: $primary_b;
     }
     a.report-a-problem-btn {
-        background-color: $teal;
+        background-color: transparent;
+        color: $grey;
+        padding: 0.75em;
+        margin: 0;
+        border-radius: 0;
+        &:hover,
+        &:active,
+        &:focus {
+            background-color: $nav_hover_background_colour;
+            color: #fff;
+        }
+    }
+    span.report-a-problem-btn {
+        &:hover,
+        &:active,
+        &:focus {
+            color: $primary_b;
+        }
     }
 }

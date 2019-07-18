@@ -29,6 +29,35 @@ h1, h2, h3, h4, h5, h6 {
     font-weight: 700;
 }
 
+#front-main {
+    h2 {
+        font-style: normal;
+        font-weight: normal;
+        color: $primary_b;
+    }
+    #postcodeForm {
+        background-color: #fff;
+        div input#sub {
+            background-color: $link-color;
+        }
+    }
+    label,
+    .form-hint {
+        color: $primary_b;
+    }
+    a#geolocate_link {
+        background-color: transparent;
+        padding: 0;
+        color: $link-color;
+        &:hover,
+        &:active,
+        &:focus {
+            background-color: transparent;
+            text-decoration: underline
+        }
+    }
+}
+
 .btn-primary,
 .green-btn,
 .btn--primary {
