@@ -154,6 +154,34 @@ fixmystreet.assets.add($.extend(true, {}, defaults, {
 }));
 
 fixmystreet.assets.add($.extend(true, {}, defaults, {
+    road: true,
+    asset_category: [
+      "Pothole In CW/FW"
+    ],
+    http_options: {
+        params: {
+            TYPENAME: "carriageways"
+        }
+    },
+    non_interactive: true,
+    usrn: {
+        attribute: 'central_asset_id',
+        field: 'central_asset_id'
+    },
+    max_resolution: {
+        'isleofwight': 6.614596562526458,
+        'fixmystreet': 4.777314267158508
+    },
+    asset_item_message: '',
+    stylemap: new OpenLayers.StyleMap({
+        'default': new OpenLayers.Style({
+            fill: false,
+            stroke: false,
+        })
+    })
+}));
+
+fixmystreet.assets.add($.extend(true, {}, defaults, {
     http_options: {
         params: {
             TYPENAME: "streets"
@@ -166,7 +194,7 @@ fixmystreet.assets.add($.extend(true, {}, defaults, {
     always_visible: true,
     non_interactive: true,
     usrn: {
-        attribute: 'site_code',
+        attribute: 'SITE_CODE',
         field: 'site_code'
     },
     stylemap: new OpenLayers.StyleMap({
