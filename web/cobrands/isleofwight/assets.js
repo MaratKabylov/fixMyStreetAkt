@@ -29,7 +29,7 @@ var defaults = {
     geometryName: 'msGeometry',
     srsName: "EPSG:27700",
     strategy_class: OpenLayers.Strategy.FixMyStreet,
-    body: "Isle of Wight Council"
+    body: "Island Roads"
 };
 
 var bin_code_to_type = {
