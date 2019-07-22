@@ -156,7 +156,7 @@ fixmystreet.assets.add($.extend(true, {}, defaults, {
 fixmystreet.assets.add($.extend(true, {}, defaults, {
     road: true,
     asset_category: [
-      "Pothole In CW/FW"
+      "Pothole"
     ],
     http_options: {
         params: {
