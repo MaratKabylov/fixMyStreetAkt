@@ -219,7 +219,7 @@ sub get_token : Private {
 sub set_oauth_token_data : Private {
     my ( $self, $c, $token_data ) = @_;
 
-    foreach (qw/facebook_id twitter_id oidc_id/) {
+    foreach (qw/facebook_id twitter_id oidc_id extra/) {
         $token_data->{$_} = $c->session->{oauth}{$_} if $c->session->{oauth}{$_};
     }
 }
@@ -283,6 +283,11 @@ sub process_login : Private {
     $user->facebook_id( $data->{facebook_id} ) if $data->{facebook_id};
     $user->twitter_id( $data->{twitter_id} ) if $data->{twitter_id};
     $user->add_oidc_id( $data->{oidc_id} ) if $data->{oidc_id};
+    $user->extra({
+        %{ $user->get_extra() },
+        %{ $data->{extra} }
+    }) if $data->{extra};
+
     $user->update_or_insert;
     $c->authenticate( { $type => $data->{$type}, $ver => 1 }, 'no_password' );
 
@@ -440,6 +445,12 @@ Log the user out. Tell them we've done so.
 sub sign_out : Local {
     my ( $self, $c ) = @_;
     $c->logout();
+
+    if ( $c->sessionid && $c->session->{oauth} && $c->session->{oauth}{logout_redirect_uri} ) {
+        $c->response->redirect($c->session->{oauth}{logout_redirect_uri});
+        delete $c->session->{oauth}{logout_redirect_uri};
+        $c->detach;
+    }
 }
 
 sub ajax_sign_in : Path('ajax/sign_in') {

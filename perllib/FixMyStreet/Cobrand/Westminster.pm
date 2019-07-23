@@ -46,4 +46,26 @@ sub anonymous_account {
     };
 }
 
+sub oidc_user_extra {
+    my ($self, $id_token) = @_;
+
+    # Westminster want the CRM ID of the user to be passed in the
+    # account_id field of Open311 POST Service Requests, so
+    # extract it from the id token and store in user extra
+    # if it's available.
+    my $crm_id = $id_token->payload->{extension_CrmContactId};
+
+    return {
+        $crm_id ? (westminster_account_id => $crm_id) : (),
+    };
+}
+
+sub open311_config {
+    my ($self, $row, $h, $params) = @_;
+
+    my $id = $row->user->get_extra_metadata('westminster_account_id');
+    # Westminster require 0 as the account ID if there's no MyWestminster ID.
+    $h->{account_id} = $id || '0';
+}
+
 1;
