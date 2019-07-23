@@ -250,10 +250,10 @@ layer_data = [
     { category: 'Pothole', layers: [ 11, 44 ], road: true },
     { group: 'Drains', item: 'gully', layers: [ 16 ] },
 
-    { category: 'Signs and bollards', subcategories: [ '2' ], item: 'bollard', layers: [ 42, 52 ] },
-    { category: 'Signs and bollards', subcategories: [ '4' ], item: 'feeder pillar', layers: [ 56 ] },
-    { category: 'Signs and bollards', subcategories: [ '1' ], item: 'sign', layers: [ 48, 58, 54 ] },
-    { category: 'Signs and bollards', subcategories: [ '3' ], item: 'street nameplate', layers: [ 46 ] }
+    { category: 'Signs and bollards', subcategories: [ '1' ], subcategory_id: '#form_featuretypecode', item: 'bollard', layers: [ 42, 52 ] },
+    { category: 'Signs and bollards', subcategories: [ 'PLFP' ], subcategory_id: '#form_featuretypecode', item: 'feeder pillar', layers: [ 56 ] },
+    { category: 'Signs and bollards', subcategories: [ '3' ], subcategory_id: '#form_featuretypecode', item: 'sign', layers: [ 48, 58, 54 ] },
+    { category: 'Signs and bollards', subcategories: [ '2' ], subcategory_id: '#form_featuretypecode', item: 'street nameplate', layers: [ 46 ] }
 ];
 
 $.each(layer_data, function(i, o) {
@@ -299,7 +299,7 @@ $.each(layer_data, function(i, o) {
 });
 
 $(function(){
-    $("#problem_form").on("change.category", "#form_type, #form_bintype", function() {
+    $("#problem_form").on("change.category", "#form_type, #form_bintype, #form_featuretypecode", function() {
         $(fixmystreet).trigger('report_new:category_change', [ $('#form_category') ]);
     });
 });
