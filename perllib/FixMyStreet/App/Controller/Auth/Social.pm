@@ -161,14 +161,14 @@ sub twitter_callback: Path('/auth/Twitter') : Args(0) {
 }
 
 sub oidc : Private {
-    my ($self, $c) = @_;
+    my ($self, $c, $auth_uri) = @_;
 
     my $config = $c->cobrand->feature('oidc_login');
 
     OIDC::Lite::Client::WebServer::Azure->new(
         id               => $config->{client_id},
         secret           => $config->{secret},
-        authorize_uri    => $config->{auth_uri},
+        authorize_uri    => $auth_uri || $config->{auth_uri},
         access_token_uri => $config->{token_uri},
     );
 }
@@ -200,10 +200,28 @@ sub oidc_sign_in : Private {
 sub oidc_callback: Path('/auth/OIDC') : Args(0) {
     my ( $self, $c ) = @_;
 
-    $c->detach('oauth_failure') if $c->get_param('error');
-    $c->detach('/page_error_400_bad_request', []) unless $c->get_param('code');
-
     my $oidc = $c->forward('oidc');
+
+    if ($c->get_param('error')) {
+        my $error_desc = $c->get_param('error_description');
+        my $password_reset_uri = $c->cobrand->feature('oidc_login')->{password_reset_uri};
+        if ($password_reset_uri && $error_desc =~ /^AADB2C90118:/) {
+            my $url = $oidc->uri_to_redirect(
+                uri          => $password_reset_uri,
+                redirect_uri => $c->uri_for('/auth/OIDC'),
+                scope        => 'openid',
+                state        => 'test',
+                extra        => {
+                    response_mode => 'form_post',
+                },
+            );
+            $c->res->redirect($url);
+            $c->detach;
+        } else {
+            $c->detach('oauth_failure');
+        }
+    }
+    $c->detach('/page_error_400_bad_request', []) unless $c->get_param('code');
 
     my $id_token;
     eval {
