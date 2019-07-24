@@ -161,14 +161,14 @@ sub twitter_callback: Path('/auth/Twitter') : Args(0) {
 }
 
 sub oidc : Private {
-    my ($self, $c, $auth_uri) = @_;
+    my ($self, $c) = @_;
 
     my $config = $c->cobrand->feature('oidc_login');
 
     OIDC::Lite::Client::WebServer::Azure->new(
         id               => $config->{client_id},
         secret           => $config->{secret},
-        authorize_uri    => $auth_uri || $config->{auth_uri},
+        authorize_uri    => $config->{auth_uri},
         access_token_uri => $config->{token_uri},
     );
 }
