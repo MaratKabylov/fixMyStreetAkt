@@ -9,6 +9,8 @@ use Net::Twitter::Lite::WithAPIv1_1;
 use OIDC::Lite::Client::WebServer::Azure;
 use URI::Escape;
 
+use mySociety::AuthToken;
+
 =head1 NAME
 
 FixMyStreet::App::Controller::Auth::Social - Catalyst Controller
@@ -161,14 +163,14 @@ sub twitter_callback: Path('/auth/Twitter') : Args(0) {
 }
 
 sub oidc : Private {
-    my ($self, $c, $auth_uri) = @_;
+    my ($self, $c) = @_;
 
     my $config = $c->cobrand->feature('oidc_login');
 
     OIDC::Lite::Client::WebServer::Azure->new(
         id               => $config->{client_id},
         secret           => $config->{secret},
-        authorize_uri    => $auth_uri || $config->{auth_uri},
+        authorize_uri    => $config->{auth_uri},
         access_token_uri => $config->{token_uri},
     );
 }
@@ -180,12 +182,14 @@ sub oidc_sign_in : Private {
     $c->detach( '/page_error_400_bad_request', [] ) unless $c->cobrand->feature('oidc_login');
 
     my $oidc = $c->forward('oidc');
+    my $nonce = $self->generate_nonce();
     my $url = $oidc->uri_to_redirect(
         redirect_uri => $c->uri_for('/auth/OIDC'),
         scope        => 'openid',
-        state        => 'test',
+        state        => 'login',
         extra        => {
             response_mode => 'form_post',
+            nonce         => $nonce,
         },
     );
 
@@ -193,6 +197,17 @@ sub oidc_sign_in : Private {
     $oauth{return_url} = $c->get_param('r');
     $oauth{detach_to} = $c->stash->{detach_to};
     $oauth{detach_args} = $c->stash->{detach_args};
+    $oauth{nonce} = $nonce;
+
+    # The OIDC endpoint may require a specific URI to be called to log the user
+    # out when they log out of FMS.
+    if ( my $redirect_uri = $c->cobrand->feature('oidc_login')->{logout_uri} ) {
+        $redirect_uri .= "?post_logout_redirect_uri=";
+        $redirect_uri .= URI::Escape::uri_escape( $c->uri_for('/auth/sign_out') );
+        $oauth{logout_redirect_uri} = $redirect_uri;
+        # die $redirect_uri;
+    }
+
     $c->session->{oauth} = \%oauth;
     $c->res->redirect($url);
 }
@@ -210,7 +225,7 @@ sub oidc_callback: Path('/auth/OIDC') : Args(0) {
                 uri          => $password_reset_uri,
                 redirect_uri => $c->uri_for('/auth/OIDC'),
                 scope        => 'openid',
-                state        => 'test',
+                state        => 'password_reset',
                 extra        => {
                     response_mode => 'form_post',
                 },
@@ -221,7 +236,14 @@ sub oidc_callback: Path('/auth/OIDC') : Args(0) {
             $c->detach('oauth_failure');
         }
     }
-    $c->detach('/page_error_400_bad_request', []) unless $c->get_param('code');
+    $c->detach('/page_error_400_bad_request', []) unless $c->get_param('code') && $c->get_param('state');
+
+    # After a password reset on the OIDC endpoint the user isn't properly logged
+    # in, so redirect them to the usual OIDC login process.
+    $c->detach('oidc_sign_in', []) if $c->get_param('state') eq 'password_reset';
+
+    # The only other valid state param is 'login' at this point.
+    $c->detach('/page_error_400_bad_request', []) unless $c->get_param('state') eq 'login';
 
     my $id_token;
     eval {
@@ -238,6 +260,9 @@ sub oidc_callback: Path('/auth/OIDC') : Args(0) {
 
     # sanity check the token audience is us...
     $c->detach('/page_error_500_internal_error', ['invalid id_token']) unless $id_token->payload->{aud} eq $c->cobrand->feature('oidc_login')->{client_id};
+
+    # check that the nonce matches what we set in the user session
+    $c->detach('/page_error_500_internal_error', ['invalid id_token']) unless $id_token->payload->{nonce} eq $c->session->{oauth}{nonce};
 
     # Some claims need parsing into a friendlier format
     # XXX check how much of this is Westminster/Azure-specific
@@ -256,15 +281,14 @@ sub oidc_callback: Path('/auth/OIDC') : Args(0) {
     # which is passed to Open311 with reports made by this user.
     my $extra = $c->cobrand->call_hook(oidc_user_extra => $id_token);
 
-    # The OIDC endpoint may require a specific URI to be called to log the user
-    # out when they log out of FMS.
-    if ( my $redirect_uri = $c->cobrand->feature('oidc_login')->{logout_uri} ) {
-        $redirect_uri .= "?post_logout_redirect_uri=";
-        $redirect_uri .= URI::Escape::uri_escape( $c->uri_for('/auth/sign_out') );
-        $c->session->{oauth}{logout_redirect_uri} = $redirect_uri;
-    }
-
     $c->forward('oauth_success', [ 'oidc', $uid, $name, $email, $extra ]);
+}
+
+# Just a wrapper around random_token to make mocking easier.
+sub generate_nonce : Private {
+    my ($self, $c) = @_;
+
+    return mySociety::AuthToken::random_token();
 }
 
 

@@ -16,7 +16,8 @@ END { FixMyStreet::App->log->enable('info'); }
 
 my ($report) = $mech->create_problems_for_body(1, '2345', 'Test');
 my $resolver = Test::MockModule->new('Email::Valid');
-
+my $social = Test::MockModule->new('FixMyStreet::App::Controller::Auth::Social');
+$social->mock('generate_nonce', sub { 'MyAwesomeRandomValue' });
 
 for my $test (
     {
@@ -47,6 +48,7 @@ for my $test (
                     secret => 'example_secret_key',
                     auth_uri => 'http://oidc.example.org/oauth2/v2.0/authorize',
                     token_uri => 'http://oidc.example.org/oauth2/v2.0/token',
+                    logout_uri => 'http://oidc.example.org/oauth2/v2.0/logout',
                     display_name => 'MyWestminster'
                 }
             }
@@ -58,8 +60,9 @@ for my $test (
     mock_hosts => ['oidc.example.org'],
     host => 'oidc.example.org',
     error_callback => '/auth/OIDC?error=ERROR',
-    success_callback => '/auth/OIDC?code=response-code',
+    success_callback => '/auth/OIDC?code=response-code&state=login',
     redirect_pattern => qr{oidc\.example\.org/oauth2/v2\.0/authorize},
+    logout_redirect_pattern => qr{oidc\.example\.org/oauth2/v2\.0/logout},
     user_extras => [
         [westminster_account_id => "1c304134-ef12-c128-9212-123908123901"],
     ],
@@ -208,6 +211,16 @@ for my $state ( 'refused', 'no email', 'existing UID', 'okay' ) {
                     }
                 }
             }
+
+            $mech->get('/auth/sign_out');
+            if ($test->{type} eq 'oidc' && $state ne 'refused' && $state ne 'no email') {
+                # XXX the 'no email' situation is skipped because of some confusion
+                # with the hosts/sessions that I've not been able to get to the bottom of.
+                # The code does behave as expected when testing manually, however.
+                is $mech->res->previous->code, 302, "$test->{type} sign out redirected";
+                like $mech->res->previous->header('Location'), $test->{logout_redirect_pattern}, "$test->{type} sign out redirect to oauth logout URL";
+            }
+            $mech->not_logged_in_ok;
         }
     }
 }
