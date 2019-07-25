@@ -205,7 +205,6 @@ sub oidc_sign_in : Private {
         $redirect_uri .= "?post_logout_redirect_uri=";
         $redirect_uri .= URI::Escape::uri_escape( $c->uri_for('/auth/sign_out') );
         $oauth{logout_redirect_uri} = $redirect_uri;
-        # die $redirect_uri;
     }
 
     $c->session->{oauth} = \%oauth;

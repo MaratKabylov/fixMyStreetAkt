@@ -299,7 +299,7 @@ $.each(layer_data, function(i, o) {
 });
 
 $(function(){
-    $("#problem_form").on("change.category", "#form_type, #form_bintype, #form_featuretypecode", function() {
+    $("#problem_form").on("change.category", "#form_type, #form_featuretypecode, #form_bintype", function() {
         $(fixmystreet).trigger('report_new:category_change', [ $('#form_category') ]);
     });
 });

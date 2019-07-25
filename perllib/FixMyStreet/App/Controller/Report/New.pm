@@ -1323,8 +1323,6 @@ sub process_confirmation : Private {
 
         $problem->user->update;
 
-        use Data::Dumper;
-        print STDERR Dumper($data);
         # Make sure OIDC logout redirection happens, if applicable
         if ($data->{logout_redirect_uri}) {
             $c->session->{oauth} ||= ();

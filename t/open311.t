@@ -279,7 +279,10 @@ for my $test (
 ) {
     subtest $test->{desc} => sub {
         $problem->extra( undef );
-        my $extra = { defined $test->{account_id} ? ( account_id => $test->{account_id} ) : () };
+        my $extra = {
+            url => 'http://example.com/report/1',
+            defined $test->{account_id} ? ( account_id => $test->{account_id} ) : ()
+        };
 
         my $results = make_service_req( $problem, $extra, $problem->category,
 '<?xml version="1.0" encoding="utf-8"?><service_requests><request><service_request_id>248</service_request_id></request></service_requests>'
